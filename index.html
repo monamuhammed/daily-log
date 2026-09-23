@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Daily Log</title>
+     <style>
+          body {
+               background-color: #c5c68c;
+               font-family: Arial, Helvetica, sans-serif;
+               margin: 0 auto;
+               padding: 20px;
+               max-width: 500px;
+               font-size: 16px;
+               text-align: center;
+               min-height: 80vh;
+               display: flex;
+               flex-direction: column;
+               justify-content: center;
+          }
+
+          h1 {
+               text-align: center;
+               font-size: 50px;
+               color: #9c8b06;
+               font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+          }
+
+          button {
+               background-color: rgb(240, 240, 206);
+               font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+               border-radius: 8px;
+               padding: 10px 16px;
+               margin: 5px;
+               cursor: pointer;
+               
+          }
+
+          #habits,
+          #expenses {
+               background-color: #cabbbb;
+               text-align: center;
+               border: 3px solid #e8e3b4;
+               padding: 8px;
+               border-radius: 15px;
+               margin-top: 10px;
+               font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+               font-size: 18px;
+               display: none;
+          }
+
+          input {
+               padding: 8px;
+               border-radius: 8px;
+               border: 1px solid #ccc;
+               margin-right: 5px;
+               font-size: 16px;
+          }
+
+          select {
+               padding: 8px;
+               border-radius: 8px;
+               border: 1px solid #ccc;
+               margin-right: 5px;
+               font-size: 16px;
+          }
+
+          li {
+               list-style-type: none;
+               margin: 5px 0;
+               padding: 5px;
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+          }
+     </style>
+</head>
+
+<body>
+     <h1>Daily Log</h1>
+     <button id="habits-btn">Habits</button>
+     <button id="expenses-btn">Expenses</button>
+     <section id="habits">
+          <p>Habits</p>
+          <input id="habit-input" type="text" placeholder="Enter a habit">
+          <button id="add-habit-btn">Add</button>
+          <ul id="habit-list"></ul>
+     </section>
+     <section id="expenses">
+          <p>Expenses</p>
+          <input id="expenses-amount" type="number" placeholder="Amount">
+          <select id="expenses-category">
+               <option value="food">Food</option>
+               <option value="transport">Transport</option>
+               <option value="Bills">Bills</option>
+               <option value="other">Other</option>
+          </select>
+          <button id="add-expense-btn">Add</button>
+          <p> Total: <span id="total-expenses">0</span></p>
+          <ul id="expense-list"></ul>
+     </section>
+     <script>
+          var habits = [];
+
+          document.getElementById("habits-btn").addEventListener("click", function () {
+               document.getElementById("habits").style.display = "block";
+               document.getElementById("expenses").style.display = "none";
+          })
+
+          document.getElementById("add-habit-btn").addEventListener("click", function () {
+               var habitValue = document.getElementById("habit-input").value;
+               if (habitValue !== "") {
+                    habits.push(habitValue);
+                    var item = document.createElement("li");
+                    item.textContent = habitValue;
+                    var deleteBtn = document.createElement("button");
+                    deleteBtn.textContent = "x";
+                    deleteBtn.addEventListener("click", function () {
+                         item.remove();
+                    });
+                    item.appendChild(deleteBtn);
+                    document.getElementById("habit-list").appendChild(item);
+                    document.getElementById("habit-input").value = ""; // Clear the input field after adding
+                    localStorage.setItem("habits", JSON.stringify(habits));
+               }
+          });
+
+          document.getElementById("expenses-btn").addEventListener("click", function () {
+               document.getElementById("expenses").style.display = "block";
+               document.getElementById("habits").style.display = "none";
+          })
+
+          var savedHabits = localStorage.getItem("habits");
+
+          if (savedHabits !== null) {
+               habits = JSON.parse(savedHabits);
+
+               habits.forEach(function (habitValue) {
+                    var item = document.createElement("li");
+                    item.textContent = habitValue;
+
+                    var deleteBtn = document.createElement("button");
+                    deleteBtn.textContent = "x";
+                    deleteBtn.addEventListener("click", function () {
+                         var index = habits.indexOf(habitValue);
+                         habits.splice(index, 1);
+                         localStorage.setItem("habits", JSON.stringify(habits));
+                         item.remove();
+                    });
+                    item.appendChild(deleteBtn);
+                    document.getElementById("habit-list").appendChild(item);
+               });
+          }
+
+          var expenses = [];
+
+          function updateTotal() {
+               var total = 0;
+
+               expenses.forEach(function (expenseItem) {
+                    total = total + Number(expenseItem.amount);
+               });
+               document.getElementById("total-expenses").textContent = total;
+          }
+
+          document.getElementById("add-expense-btn").addEventListener("click", function () {
+               var amountValue = document.getElementById("expenses-amount").value;
+               var categoryValue = document.getElementById("expenses-category").value;
+
+
+               if (amountValue !== "") {
+                    var newExpense = { amount: amountValue, category: categoryValue };
+                    expenses.push(newExpense);
+
+                    var item = document.createElement("li");
+                    item.textContent = amountValue + " - " + categoryValue;
+
+                    var deletebtn = document.createElement("button");
+                    deletebtn.textContent = "x";
+                    deletebtn.addEventListener("click", function () {
+                         var index = expenses.indexOf(newExpense);
+                         expenses.splice(index, 1);
+                         localStorage.setItem("expenses", JSON.stringify(expenses));
+                         item.remove();
+                         updateTotal();
+                    });
+                    item.appendChild(deletebtn);
+
+                    document.getElementById("expense-list").appendChild(item);
+                    document.getElementById("expenses-amount").value = ""; // Clear the input field after adding
+                    localStorage.setItem("expenses", JSON.stringify(expenses));
+                    updateTotal();
+               }
+          });
+
+          var savedExpenses = localStorage.getItem("expenses");
+
+          if (savedExpenses !== null ) {
+               expenses = JSON.parse(savedExpenses);
+
+               expenses.forEach(function (expenseItem) {
+                    var item = document.createElement("li");
+                    item.textContent = expenseItem.amount + " - " + expenseItem.category;
+
+                    var deletebtn = document.createElement("button");
+                    deletebtn.textContent = "x";
+                    deletebtn.addEventListener("click", function () {
+                         var index = expenses.indexOf(expenseItem);
+                         expenses.splice(index, 1);
+                         localStorage.setItem("expenses", JSON.stringify(expenses));
+                         item.remove();
+                         updateTotal();
+                    });
+                    item.appendChild(deletebtn);
+
+                    document.getElementById("expense-list").appendChild(item);
+               });
+               updateTotal();
+          }
+
+     </script>
+</body>
+
+</html>
